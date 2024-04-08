@@ -1,14 +1,10 @@
 require('dotenv').config()
 const express = require('express')
-const cors = require('cors')
 const Note = require('./models/note.js')
 const app = express()
 
-app.use(express.json())
-
-app.use(cors())
-
 app.use(express.static('dist'))
+app.use(express.json())
 
 app.get('/api/notes', (req, res) => {
 	Note.find({}).then((notes) => {
@@ -16,7 +12,7 @@ app.get('/api/notes', (req, res) => {
 	})
 })
 
-app.get('/api/notes/:id', (req, res) => {
+app.get('/api/notes/:id', (req, res, next) => {
 	Note.findById(req.params.id)
 		.then((note) => {
 			if (note) {
@@ -25,10 +21,7 @@ app.get('/api/notes/:id', (req, res) => {
 				res.status(404).end()
 			}
 		})
-		.catch((error) => {
-			console.log(error)
-			res.status(400).send({ error: 'Malformatted id' })
-		})
+		.catch((error) => next(error))
 })
 
 app.post('/api/notes', (req, res) => {
@@ -49,11 +42,24 @@ app.post('/api/notes', (req, res) => {
 	})
 })
 
-app.delete('/api/notes/:id', (req, res) => {
-	const id = +req.params.id
-	notes = notes.filter((note) => note.id !== id)
-	res.status(204).end()
+app.delete('/api/notes/:id', (req, res, next) => {
+	Note.findByIdAndDelete(req.params.id)
+		.then((result) => {
+			res.status(204).end()
+		})
+		.catch((error) => next(error))
 })
+
+const errorHandler = (error, req, res, next) => {
+	console.error(error.message)
+	if (error.name === 'Cast error') {
+		return res.status(400).send({ error: 'malformatted id' })
+	}
+	next(error)
+}
+
+app.use(errorHandler)
+
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`)
