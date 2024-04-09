@@ -2,9 +2,11 @@ require('dotenv').config()
 const express = require('express')
 const Note = require('./models/note.js')
 const app = express()
+const cors = require('cors')
 
 app.use(express.static('dist'))
 app.use(express.json())
+app.use(cors())
 
 app.get('/api/notes', (req, res) => {
 	Note.find({}).then((notes) => {
@@ -42,9 +44,26 @@ app.post('/api/notes', (req, res) => {
 	})
 })
 
+app.put('/api/notes/:id', (req, res, next) => {
+	const body = req.body
+
+	const note = {
+		content: body.content,
+		important: body.important,
+	}
+
+	console.log(note)
+
+	Note.findByIdAndUpdate(req.params.id, note, { new: true })
+		.then((updatedNote) => {
+			res.json(updatedNote)
+		})
+		.catch((error) => next(error))
+})
+
 app.delete('/api/notes/:id', (req, res, next) => {
 	Note.findByIdAndDelete(req.params.id)
-		.then((result) => {
+		.then(() => {
 			res.status(204).end()
 		})
 		.catch((error) => next(error))
