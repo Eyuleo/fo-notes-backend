@@ -12,11 +12,7 @@ const Note = require('../models/note')
 beforeEach(async () => {
 	await Note.deleteMany({})
 
-	let noteObject = new Note(helper.initialNotes[0])
-	await noteObject.save()
-
-	noteObject = new Note(helper.initialNotes[1])
-	await noteObject.save()
+	await Note.insertMany(helper.initialNotes)
 })
 
 test('notes are returned as json', async () => {
@@ -84,7 +80,7 @@ test('a specific note can be viewed', async () => {
 	assert.deepEqual(resultNote.body, noteToView)
 })
 
-test('a note can be delted', async () => {
+test('a note can be deleted', async () => {
 	const notesAtStart = await helper.notesInDb()
 	const noteToDelete = notesAtStart[0]
 
