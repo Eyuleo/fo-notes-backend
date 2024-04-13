@@ -17,4 +17,6 @@ noteSchema.set('toJSON', {
 	},
 })
 
+noteSchema.set('timestamps', true)
+
 module.exports = mongoose.model('Note', noteSchema)
